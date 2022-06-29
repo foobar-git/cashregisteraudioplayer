@@ -29,8 +29,8 @@ from array import *
 # DEFINICIJE ===========================================================
 
 noviRed = "<br>"
-prekid = None
-m_prekid = False
+prekid = None                   # variabla za prekid reprodukcije zvuka
+m_prekid = False                # variabla za prekid reprodukcije zvuka
 audio_SeReproducira = False
 niz_blagajne = []
 aktivna_blagajna = None
@@ -65,27 +65,22 @@ def fn_odaberiJezik_zatvaranje(i):
 
 def fn_set_aktivna_blagajna(b, s):
     aktivna_blagajna = br_nove_blagajne
-    #fn_set_stanje(b, s)
     global m_prekid
     global prekid
     m_prekid = prekid
-    print("prekid (fn_set_aktivna_blagajna): " + str(prekid))
-    print("prekid (fn_set_aktivna_blagajna): " + str(m_prekid))
     n_string = "Status: Reprodukcija audio datoteke je u toku."
     if m_prekid == False:
         niz_blagajne[b - 1] = s;
         print(niz_blagajne)
         n_string = "Status: Blagajna " + str(b) + " je otvorena."
         n_string += noviRed + "Status: Reprodukcija audio datoteka je završena."
-        # EDIT skontati kako prenijeti sttatusne stringove
-    #return n_string
 
 def fn_set_neaktivna_blagajna(b):
     niz_blagajne[b - 1] = 0;
     print(niz_blagajne)
 
 def fn_set_niz_blagajne():
-    broj_blagajnih = 10 # EDIT ovonapraviti dinamično
+    broj_blagajnih = 10 # EDIT ovo napraviti dinamično
     stanje = 2          # EDIT i ovo
     global niz_blagajne
     niz_blagajne = []
@@ -96,12 +91,6 @@ def fn_set_niz_blagajne():
     niz_blagajne = [0] * broj_blagajnih
     print(niz_blagajne)
     return 'Status: Niz je kreiran.'
-    
-def fn_reset_br_b():
-    global br_b
-    br_b = []
-    print('br_b:' + str(br_b))
-    print('br_b_:' + str(br_b_))
     
 def fn_debuglog():
     print('aktivna_blagajna: ' + str(aktivna_blagajna))
@@ -155,13 +144,15 @@ def fn_otvori_blagajnu(broj_trenutne_blagajne, broj_nove_blagajne):
     else:
         br_b.pop()
         print('br_b: ' + str(br_b))
-
+    
+    global br_b
     global br_b_
     br_b_ = []                  # kopiramo u novi niz zadnja dva elementa
-    br_b_.append(br_b[-1])      # zadnji
-    br_b_.append(br_b[-2])      # predzadnji
+    br_b_.append(br_b[-2])      # zadnji
+    br_b_.append(br_b[-1])      # predzadnji
+    br_b = br_b_.copy()         # "očisti" niz
     print("br_b_" + str(br_b_))
-    fn_set_aktivna_blagajna(br_b[-1], 1) #uzmi zadnji element iz niza
+    fn_set_aktivna_blagajna(br_b_[-1], 1) #uzmi zadnji element iz niza
     return 'mama ti je return' # EDIT srediti
 
 @app.route("/1/0/<int:broj_trenutne_blagajne>/<int:broj_nove_blagajne>")
@@ -170,15 +161,24 @@ def fn_zatvori_blagajnu(broj_trenutne_blagajne, broj_nove_blagajne):
     fn_debuglog()
     br_trenutne_blagajne = broj_trenutne_blagajne
     br_nove_blagajne = broj_nove_blagajne
-    if br_trenutne_blagajne == br_nove_blagajne:
-        fn_odaberiJezik_zatvaranje(br_trenutne_blagajne)
-        fn_set_aktivna_blagajna(br_nove_blagajne, 0)
-        #print(niz_blagajne)
-        n_string = 'Status: Blagajna ' + str(br_nove_blagajne) + ' je zatvorena.'
-    else:
-        n_string = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
     
-    fn_reset_br_b()
+    # logika za sprečavanje ispreplitanja zvuka
+    global audio_SeReproducira
+    if audio_SeReproducira == False:
+        audio_SeReproducira = True
+        if br_trenutne_blagajne == br_nove_blagajne:
+            fn_odaberiJezik_zatvaranje(br_trenutne_blagajne)
+            fn_set_aktivna_blagajna(br_nove_blagajne, 0)
+            #print(niz_blagajne)
+            n_string = 'Status: Blagajna ' + str(br_nove_blagajne) + ' je zatvorena.'
+        else:
+            n_string = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
+        
+        audio_SeReproducira = False
+        
+    else:
+        n_string = "Status: reprodukcija je u toku (zatvaranje)."
+    
     return n_string
 
 @app.route("/9/<int:broj_trenutne_blagajne>/<int:broj_nove_blagajne>")
@@ -197,13 +197,12 @@ def fn_prekid_audio(broj_trenutne_blagajne, broj_nove_blagajne):
     else:
         n_string = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
     
-    fn_reset_br_b()
     return n_string
 
 @app.route("/8")
 # prvo pokretanje i kreiranje niza (niz_blagajne)
 def kreiraj_niz():
-    global br_b               # EDIT ////////////////////////
+    #global br_b
     global prekid
     prekid = False
     print('niz_blagajne' + str(niz_blagajne))
