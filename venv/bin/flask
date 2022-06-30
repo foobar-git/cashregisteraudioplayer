@@ -1,4 +1,4 @@
-#!/home/pi/Blagajna_v09/venv/bin/python3
+#!/home/pi/blagajna/venv/bin/python3
 
 # -*- coding: utf-8 -*-
 import re

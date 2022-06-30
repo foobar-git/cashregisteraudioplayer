@@ -1,4 +1,4 @@
-# Blagajna v0.99                                         KONZUM d.o.o.
+# Blagajna v1.0                                          KONZUM d.o.o.
 #
 # Glavna logika za aplikaciju Blagajna
 # za unos novih jezika, u funkcijama "fn_odaberiJezik_otvaranje" i
@@ -126,159 +126,162 @@ def fn_test():
 # FLASK ================================================================
 
 from flask import Flask, current_app
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
 
+    # API ==============================================================
+    @app.route("/")
+    def index():
+        return current_app.send_static_file('index.html')
 
-# API ==================================================================
-
-@app.route("/")
-def index():
-    return current_app.send_static_file('index.html')
-
-@app.route("/0/1/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
-# otvaranje blagajne
-def fn_otvori_blagajnu(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
-    global prekid
-    prekid = False
-    
-    global otvaranje_blagajne
-    otvaranje_blagajne = True
-    
-    global audio_seReproducira
-    global aktivna_blagajna
-    
-    global br_blagajne_interfejsFiksno
-    br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
-    global br_druge_blagajne
-    br_druge_blagajne = broj_druge_blagajne
-    
-    global br_b
-    print('br_b: ' + str(br_b))
-    br_b.append(broj_druge_blagajne)
-    print('br_b: ' + str(br_b))
-    
-    aktivna_blagajna = broj_blagajne_interfejsFiksno
-
-    # logika za sprečavanje ispreplitanja zvuka
-    if aktivna_blagajna == broj_druge_blagajne:
-        if audio_seReproducira == False:
-            audio_seReproducira = True
-            fn_odaberiJezik_otvaranje(br_blagajne_interfejsFiksno)
-            audio_seReproducira = False
-    else:
-        if audio_seReproducira == False:
-            audio_seReproducira = True
-            fn_odaberiJezik_otvaranje(br_druge_blagajne)
-            audio_seReproducira = False
-    
-    if audio_seReproducira == False:
+    @app.route("/0/1/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
+    # otvaranje blagajne
+    def fn_otvori_blagajnu(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
+        global prekid
+        prekid = False
+        
+        global otvaranje_blagajne
+        otvaranje_blagajne = True
+        
+        global audio_seReproducira
+        global aktivna_blagajna
+        
+        global br_blagajne_interfejsFiksno
+        br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
+        global br_druge_blagajne
+        br_druge_blagajne = broj_druge_blagajne
+        
+        global br_b
+        print('br_b: ' + str(br_b))
         br_b.append(broj_druge_blagajne)
         print('br_b: ' + str(br_b))
-    else:
-        br_b.pop()
-        print('br_b: ' + str(br_b))
-    
-    global br_b_
-    br_b_ = []                      # kopiramo u novi niz zadnja dva elementa
-    if len(br_b) > 1:
-        br_b_.append(br_b[-2])      # predzadnji
-    if len(br_b) < 2:
-        br_b_.append(br_b[-1])      # zadnji
-    
-    if len(br_b) > 3:               # ovo osigurava da je maksimalan broj
-        br_b.pop(1)                 # elemenata u nizu 4 (testirano)
-    print("br_b_" + str(br_b_))
-    
-    fn_set_aktivna_blagajna(br_b_[-1], 1) #uzmi zadnji element iz niza
-    string_status = 'Status: Blagajna ' + str(br_druge_blagajne) + ' je otvorena.'
-    otvaranje_blagajne = False
-    
-    return string_status
-
-@app.route("/1/0/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
-# zatvaranje blagajne
-def fn_zatvori_blagajnu(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
-    fn_debuglog()
-    br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
-    br_druge_blagajne = broj_druge_blagajne
-    
-    # logika za sprečavanje ispreplitanja zvuka
-    global audio_seReproducira
-    if audio_seReproducira == False:
-        audio_seReproducira = True
         
-        if br_blagajne_interfejsFiksno == br_druge_blagajne:
-            fn_odaberiJezik_zatvaranje(br_blagajne_interfejsFiksno)
-            fn_set_aktivna_blagajna(br_druge_blagajne, 0) # 0 = zatvaranje
-            string_status = 'Status: Blagajna ' + str(br_druge_blagajne) + ' je zatvorena.'
+        aktivna_blagajna = broj_blagajne_interfejsFiksno
+
+        # logika za sprečavanje ispreplitanja zvuka
+        if aktivna_blagajna == broj_druge_blagajne:
+            if audio_seReproducira == False:
+                audio_seReproducira = True
+                fn_odaberiJezik_otvaranje(br_blagajne_interfejsFiksno)
+                audio_seReproducira = False
+        else:
+            if audio_seReproducira == False:
+                audio_seReproducira = True
+                fn_odaberiJezik_otvaranje(br_druge_blagajne)
+                audio_seReproducira = False
+        
+        if audio_seReproducira == False:
+            br_b.append(broj_druge_blagajne)
+            print('br_b: ' + str(br_b))
+        else:
+            br_b.pop()
+            print('br_b: ' + str(br_b))
+        
+        global br_b_
+        br_b_ = []                      # kopiramo u novi niz zadnja dva elementa
+        if len(br_b) > 1:
+            br_b_.append(br_b[-2])      # predzadnji
+        if len(br_b) < 2:
+            br_b_.append(br_b[-1])      # zadnji
+        
+        if len(br_b) > 3:               # ovo osigurava da je maksimalan broj
+            br_b.pop(1)                 # elemenata u nizu 4 (testirano)
+        print("br_b_" + str(br_b_))
+        
+        fn_set_aktivna_blagajna(br_b_[-1], 1) #uzmi zadnji element iz niza
+        string_status = 'Status: Blagajna ' + str(br_druge_blagajne) + ' je otvorena.'
+        otvaranje_blagajne = False
+        
+        return string_status
+
+    @app.route("/1/0/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
+    # zatvaranje blagajne
+    def fn_zatvori_blagajnu(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
+        fn_debuglog()
+        br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
+        br_druge_blagajne = broj_druge_blagajne
+        
+        # logika za sprečavanje ispreplitanja zvuka
+        global audio_seReproducira
+        if audio_seReproducira == False:
+            audio_seReproducira = True
             
-            if prekid == True:
-                string_status = 'Status: Zatvaranje je prekinuto.'
-                fn_set_prekid_zatvaranja(br_druge_blagajne)
-                global prekid
-                prekid = False
+            if br_blagajne_interfejsFiksno == br_druge_blagajne:
+                fn_odaberiJezik_zatvaranje(br_blagajne_interfejsFiksno)
+                fn_set_aktivna_blagajna(br_druge_blagajne, 0) # 0 = zatvaranje
+                string_status = 'Status: Blagajna ' + str(br_druge_blagajne) + ' je zatvorena.'
                 
-            string_status = 'Status: Zatvaranje je u toku.'
+                global prekid
+                if prekid == True:
+                    string_status = 'Status: Zatvaranje je prekinuto.'
+                    fn_set_prekid_zatvaranja(br_druge_blagajne)
+                    prekid = False
+                    
+                string_status = 'Status: Zatvaranje je u toku.'
+            
+            else:
+                string_status = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
+            
+            audio_seReproducira = False
+            
+        else:
+            string_status = "Status: Reprodukcija audio datoteke je u toku (zatvaranje)."
+        
+        return string_status
+
+    @app.route("/9/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
+    # prekid trenutno reproduciranog zvučnog zapisa
+    def fn_prekid_audio(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
+        fn_debuglog()
+        
+        global prekid
+        prekid = True
+        
+        br_druge_blagajne = broj_druge_blagajne
+        br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
+        if aktivna_blagajna == br_blagajne_interfejsFiksno:
+            # prekid reprodukcije zvuka
+            for kp in range(broj_jezika):
+                os.system('pkill omxplayer')
+                
+            if otvaranje_blagajne == True:
+                fn_set_neaktivna_blagajna(br_druge_blagajne)
+                string_status = 'Status: Otvaranje blagajne' + str(broj_blagajne_interfejsFiksno) + ' je anulirano.'
+            else:
+                string_status = 'Status: Zatvaranje blagajne' + str(broj_blagajne_interfejsFiksno) + ' je anulirano.'
         
         else:
             string_status = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
         
-        audio_seReproducira = False
+        return string_status
+
+    @app.route("/8/<int:broj_blagajni>")
+    # prvo pokretanje i kreiranje niza (niz_status_blagajni)
+    def kreiraj_niz(broj_blagajni):
+        global jezici
         
-    else:
-        string_status = "Status: Reprodukcija audio datoteke je u toku (zatvaranje)."
-    
-    return string_status
+        global br_blagajni
+        br_blagajni = broj_blagajni
+        
+        global string_status
+        string_status = ""
+        
+        global prekid
+        prekid = False
+        
+        print('niz_status_blagajni' + str(niz_status_blagajni))
+        return fn_kreiraj_niz_status_blagajni(br_blagajni)
+        
+    @app.route("/test")
+    # za testiranje
+    def test():
+        fn_test()
+        return "<p>This is a test.</p>"
+        
+    return app
 
-@app.route("/9/<int:broj_blagajne_interfejsFiksno>/<int:broj_druge_blagajne>")
-# prekid trenutno reproduciranog zvučnog zapisa
-def fn_prekid_audio(broj_blagajne_interfejsFiksno, broj_druge_blagajne):
-    fn_debuglog()
-    
-    global prekid
-    prekid = True
-    
-    br_druge_blagajne = broj_druge_blagajne
-    br_blagajne_interfejsFiksno = broj_blagajne_interfejsFiksno
-    if aktivna_blagajna == br_blagajne_interfejsFiksno:
-        # prekid reprodukcije zvuka
-        for kp in range(broj_jezika):
-            os.system('pkill omxplayer')
-            
-        if otvaranje_blagajne == True:
-            fn_set_neaktivna_blagajna(br_druge_blagajne)
-            string_status = 'Status: Otvaranje blagajne' + str(broj_blagajne_interfejsFiksno) + ' je anulirano.'
-        else:
-            string_status = 'Status: Zatvaranje blagajne' + str(broj_blagajne_interfejsFiksno) + ' je anulirano.'
-    
-    else:
-        string_status = 'Status: Aktivna blagajna i broj blagajne se ne podudaraju.'
-    
-    return string_status
 
-@app.route("/8/<int:broj_blagajni>")
-# prvo pokretanje i kreiranje niza (niz_status_blagajni)
-def kreiraj_niz(broj_blagajni):
-    global jezici
-    
-    global br_blagajni
-    br_blagajni = broj_blagajni
-    
-    global string_status
-    string_status = ""
-    
-    global prekid
-    prekid = False
-    
-    print('niz_status_blagajni' + str(niz_status_blagajni))
-    return fn_kreiraj_niz_status_blagajni(br_blagajni)
-    
-@app.route("/test")
-# za testiranje
-def test():
-    fn_test()
-    return "<p>This is a test.</p>"
-
-# python main
+# Python main ==========================================================
 if __name__ == "__main__":
+    app = create_app()
     app.run()
