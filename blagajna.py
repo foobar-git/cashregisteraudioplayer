@@ -1,4 +1,4 @@
-# Blagajna v1.0                                          KONZUM d.o.o.
+# Blagajna v1.0                                          
 #
 # Glavna logika za aplikaciju Blagajna
 # za unos novih jezika, u funkcijama "fn_odaberiJezik_otvaranje" i
